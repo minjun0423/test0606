@@ -1,5 +1,5 @@
-from fastapi import FastAPI, HTTPException
-import requests
+from fastapi import FastAPI#, HTTPException
+#import requests
 
 app = FastAPI()
 
@@ -9,7 +9,7 @@ BASE_URL = "http://swopenapi.seoul.go.kr/api/subway"
 @app.get("/")
 def read_root():
     return {"message": "Welcome to Seoul Subway API"}
-
+"""
 @app.get("/subway/{station}")
 def get_arrivalinfo(station: str):
     try:
@@ -40,4 +40,4 @@ def get_arrivalinfo(station: str):
         return [station] + processed_data
     
     except requests.RequestException as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))"""
