@@ -3,7 +3,7 @@ import requests
 
 app = FastAPI()
 
-API_KEY = "YOUR_API_KEY"  # 서울시 오픈API 키
+API_KEY = "427a53796b6d696e37344f6451594a"  # 서울시 오픈API 키
 BASE_URL = "http://swopenapi.seoul.go.kr/api/subway"
 
 @app.get("/")
