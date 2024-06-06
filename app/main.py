@@ -1,10 +1,6 @@
-from fastapi import FastAPI, HTTPException
-import requests
+from fastapi import FastAPI
 
 app = FastAPI()
-
-# 서울시 지하철 실시간 도착정보 Open API 키
-API_KEY = 'YOUR_API_KEY'
 
 @app.get("/")
 def read_root():
