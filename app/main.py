@@ -15,9 +15,6 @@ def get_subway_info(station: str):
     response = requests.get(url)
     data = response.json()
 
-    if 'errorMessage' in data:
-        return {"error": data['errorMessage']['message']}
-
     results = []
     for item in data['realtimeArrivalList']:
         result = {
