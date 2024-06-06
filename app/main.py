@@ -1,24 +1,53 @@
+from fastapi import FastAPI, HTTPException, Query
+from pydantic import BaseModel
+import requests
+
+app = FastAPI()
+
+API_KEY = "427a53796b6d696e37344f6451594a"  # ì„œìš¸ì‹œ ì˜¤í”ˆAPI í‚¤
+BASE_URL = "http://swopenapi.seoul.go.kr/api/subway"
+
+class Item(BaseModel):
+    name: str
+    price: float
+
 @app.get("/")
 def read_root():
     return {"message": "Subway Info"}
 
+@app.post("/subway")
+async def create_item(item: Item):
+    return item
+
 @app.get("/subway/{station}")
 def get_real_time_arrival_info(station: str):
-    url = f"{BASE_URL}/{API_KEY}/json/realtimeStationArrival/0/5/{station}"
     try:
+        url = f"{BASE_URL}/{API_KEY}/json/realtimeStationArrival/0/5/{station}"
         response = requests.get(url)
         response.raise_for_status()
-        data = response.json()  # JSON Çü½Ä º¯È¯ µ¥ÀÌÅÍ
+        data = response.json() #JSON í˜•ì‹ ë³€í™˜ ë°ì´í„°
         
-        processed_data = []  # µ¥ÀÌÅÍ °¡°ø
-        for arrival_info in data.get("realtimeArrivalList", []):
-            processed_data.append(ArrivalInfo(
-                ¿­Â÷¹øÈ£=arrival_info.get("btrainNo", ""),
-                È£¼±=arrival_info.get("subwayId", ""),
-                »óÇÏÇà¼±±¸ºĞ=arrival_info.get("updnLine", ""),
-                ÁöÇÏÃ¶_À§Ä¡=arrival_info.get("arvlMsg3", ""),
-                ÁöÇÏÃ¶_µµÂø±îÁö=arrival_info.get("arvlMsg2", "")
-            ))
-        return processed_data
-    except Exception as e:
-        return {"error": str(e)}
+        processed_data = [] # ë°ì´í„° ê°€ê³µ
+        for arrival_info in data["realtimeArrivalList"]:
+            station = arrival_info["statnNm"]
+            train_line = arrival_info["trainLineNm"] #ë„ì°©ì§€ ë°©ë©´
+            arvlMsg2 = arrival_info["arvlMsg2"] #ì²«ë²ˆì§¸ë„ì°©ë©”ì„¸ì§€, (ë„ì°©, ì¶œë°œ , ì§„ì… ë“±)
+            arvlMsg3 = arrival_info["arvlMsg3"] #ë‘ë²ˆì§¸ë„ì°©ë©”ì„¸ì§€, (ì¢…í•©ìš´ë™ì¥ ë„ì°©, 12ë¶„ í›„ (ê´‘ëª…ì‚¬ê±°ë¦¬) ë“±)
+            updownline = arrival_info["updnLine"]
+            barvlDt = arrival_info["barvlDt"]
+            btrainNo = arrival_info["btrainNo"]
+            subwayId = arrival_info["subwayId"]
+            #ordkey = arrival_info["ordkey"]
+
+            processed_data.append({
+                "ì—´ì°¨ë²ˆí˜¸": btrainNo,
+                "í˜¸ì„ ": subwayId,
+                "ìƒí•˜í–‰ì„ êµ¬ë¶„": updownline,
+                "ì§€í•˜ì²  ìœ„ì¹˜": arvlMsg3,
+                "ì§€í•˜ì²  ë„ì°©ê¹Œì§€": arvlMsg2
+            })
+        return [station] + processed_data
+    
+    except requests.RequestException as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
