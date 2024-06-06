@@ -1,28 +1,35 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 import requests
 
 app = FastAPI()
 
-API_KEY = "427a53796b6d696e37344f6451594a"
+API_KEY = "YOUR_API_KEY"  # 서울시 오픈API 키
+BASE_URL = "http://swopenapi.seoul.go.kr/api/subway"
 
 @app.get("/")
 def read_root():
-    return {"message": "서울시 지하철 실시간 도착 정보 API. /subway/{station} 경로를 통해 검색하세요."}
+    return {"message": "Welcome to Seoul Subway API"}
 
 @app.get("/subway/{station}")
-def get_subway_info(station: str):
-    url = f"http://swopenAPI.seoul.go.kr/api/subway/{API_KEY}/json/realtimeStationArrival/0/5/{station}"
-    response = requests.get(url)
-    data = response.json()
+def get_real_time_arrival_info(station: str):
+    try:
+        url = f"{BASE_URL}/{API_KEY}/json/realtimeStationArrival/0/5/{station}"
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
+        data = response.json()
 
-    results = []
-    for item in data['realtimeArrivalList']:
-        result = {
-            '열차번호': item['trainNo'],
-            '지하철호선ID': item['subwayId'],
-            '첫번째도착메세지': item['arvlMsg2'],
-            '두번째도착메세지': item['arvlMsg3']
-        }
-        results.append(result)
+        # 가공된 정보를 담을 리스트
+        processed_data = []
 
-    return results
+        # 각 지하철 도착 정보를 가공
+        for arrival_info in data["realtimeArrivalList"]:
+            train_line = arrival_info["trainLineNm"]
+            arrival_msg = arrival_info["arvlMsg2"]
+            station_name = arrival_info["arvlMsg3"]
+
+            # 가공된 정보를 리스트에 추가
+            processed_data.append({"train_line": train_line, "arrival_msg": arrival_msg, "station_name": station_name})
+
+        return processed_data
+    except requests.RequestException as e:
+        raise HTTPException(status_code=500, detail=str(e))
