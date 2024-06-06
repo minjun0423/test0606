@@ -1,9 +1,8 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 import requests
 
 app = FastAPI()
 
-# 서울시 지하철 실시간 도착정보 Open API 키
 API_KEY = "427a53796b6d696e37344f6451594a"
 
 @app.get("/")
@@ -17,7 +16,7 @@ def get_subway_info(station: str):
     data = response.json()
 
     if 'errorMessage' in data:
-        raise HTTPException(status_code=404, detail=data['errorMessage']['message'])
+        return {"error": data['errorMessage']['message']}
 
     results = []
     for item in data['realtimeArrivalList']:
@@ -30,7 +29,3 @@ def get_subway_info(station: str):
         results.append(result)
 
     return results
-
-if __name__ == '__main__':
-    import uvicorn
-    uvicorn.run(app, host='0.0.0.0', port=8000)
