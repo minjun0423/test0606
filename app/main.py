@@ -13,4 +13,4 @@ def read_root():
 @app.get("/subway/{station}")
 def get_real_time_arrival_info(station: str):
     result = requests.get("{BASE_URL}/{API_KEY}/json/realtimeStationArrival/0/5/{station}")
-    return result.json()
+    return result
